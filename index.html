@@ -358,7 +358,7 @@ footer{background:var(--surf);border-top:1px solid rgba(74,124,89,.25)}
 /* ── CONFIG ── */
 const SHOP = {
   domain: 'cf184.myshopify.com',
-  token: '63e59d177860324e0ed17e6ee58f6cb5', // ← Replace with your Storefront API token
+  token: '63e59d177860324e0ed17e6ee58f6cb5', // DEV — headless storefront API key
   api: '2026-04'
 };
 
@@ -454,28 +454,28 @@ async function fetchAllProducts() {
 }
 
 /* Cart mutation */
-const CREATE_CHECKOUT = `
-  mutation checkoutCreate($input: CheckoutCreateInput!) {
-    checkoutCreate(input: $input) {
-      checkout { id webUrl }
-      checkoutUserErrors { message field }
+const CREATE_CART = `
+  mutation cartCreate($input: CartInput!) {
+    cartCreate(input: $input) {
+      cart { id checkoutUrl }
+      userErrors { message field }
     }
   }
 `;
 
 async function createCheckout() {
-  const lineItems = state.cart.map(item => ({
-    variantId: item.variantId,
+  const lines = state.cart.map(item => ({
+    merchandiseId: item.variantId,
     quantity: item.quantity,
   }));
 
-  const data = await shopifyQuery(CREATE_CHECKOUT, {
-    input: { lineItems }
+  const data = await shopifyQuery(CREATE_CART, {
+    input: { lines }
   });
 
-  const errs = data.checkoutCreate.checkoutUserErrors;
+  const errs = data.cartCreate.userErrors;
   if (errs && errs.length) throw new Error(errs[0].message);
-  return data.checkoutCreate.checkout.webUrl;
+  return data.cartCreate.cart.checkoutUrl;
 }
 
 /* ══════════════════════════════════
